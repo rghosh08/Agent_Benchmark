@@ -1,0 +1,188 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "title": "Terminal-Bench 2.0 — Run Tracker",
+  "uid": "tb2-tracker",
+  "tags": ["terminal-bench", "ollama"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "job",
+        "label": "Job",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "tb2prom" },
+        "query": { "query": "label_values(tb_tasks_total, job)", "refId": "A" },
+        "definition": "label_values(tb_tasks_total, job)",
+        "sort": 2,
+        "includeAll": false,
+        "refresh": 2,
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat", "title": "Total tasks",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_tasks_total{job=\"$job\"}", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "text" } } },
+      "options": { "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "type": "stat", "title": "Passed",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_tasks_passed{job=\"$job\"}", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } } },
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "type": "stat", "title": "Failed",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_tasks_failed{job=\"$job\"}", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "orange" } } },
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "type": "stat", "title": "Timed out",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_tasks_timeout{job=\"$job\"}", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } } },
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "type": "stat", "title": "Errored",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_tasks_errored{job=\"$job\"}", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "purple" } } },
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "type": "stat", "title": "Running",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_tasks_running{job=\"$job\"}", "instant": true }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } } },
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "type": "gauge", "title": "Pass rate",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_pass_rate{job=\"$job\"} * 100", "instant": true }],
+      "fieldConfig": { "defaults": {
+        "unit": "percent", "min": 0, "max": 100,
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "red", "value": null }, { "color": "orange", "value": 20 }, { "color": "green", "value": 50 } ] }
+      } }
+    },
+    {
+      "type": "piechart", "title": "Task outcomes",
+      "gridPos": { "h": 8, "w": 8, "x": 6, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [
+        { "refId": "A", "expr": "tb_tasks_passed{job=\"$job\"}", "legendFormat": "passed", "instant": true },
+        { "refId": "B", "expr": "tb_tasks_failed{job=\"$job\"}", "legendFormat": "failed", "instant": true },
+        { "refId": "C", "expr": "tb_tasks_timeout{job=\"$job\"}", "legendFormat": "timeout", "instant": true },
+        { "refId": "D", "expr": "tb_tasks_errored{job=\"$job\"}", "legendFormat": "errored", "instant": true },
+        { "refId": "E", "expr": "tb_tasks_running{job=\"$job\"}", "legendFormat": "running", "instant": true }
+      ],
+      "options": { "pieType": "donut", "legend": { "displayMode": "table", "placement": "right", "values": ["value"] } },
+      "fieldConfig": { "defaults": {}, "overrides": [
+        { "matcher": { "id": "byName", "options": "passed" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+        { "matcher": { "id": "byName", "options": "failed" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+        { "matcher": { "id": "byName", "options": "timeout" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+        { "matcher": { "id": "byName", "options": "errored" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }] },
+        { "matcher": { "id": "byName", "options": "running" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] }
+      ] }
+    },
+    {
+      "type": "bargauge", "title": "Per-task duration (s)",
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "tb_task_duration_seconds{job=\"$job\"}", "legendFormat": "{{task}}", "instant": true }],
+      "options": { "orientation": "horizontal", "displayMode": "gradient" },
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "continuous-BlPu" } } }
+    },
+    {
+      "type": "table", "title": "Per-task detail (latest job)",
+      "gridPos": { "h": 9, "w": 14, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [
+        { "refId": "A", "expr": "tb_task_state{job=\"$job\",state=~\"passed|failed|timeout|errored|running\"} == 1", "instant": true, "format": "table" },
+        { "refId": "B", "expr": "tb_task_duration_seconds{job=\"$job\"}", "instant": true, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "task", "mode": "outer" } },
+        { "id": "organize", "options": {
+          "excludeByName": { "Time 1": true, "Time 2": true, "__name__ 1": true, "__name__ 2": true, "job 1": true, "job 2": true, "Value #A": true },
+          "renameByName": { "task": "Task", "state": "Status", "Value #B": "Duration (s)" }
+        } }
+      ],
+      "fieldConfig": { "defaults": {}, "overrides": [
+        { "matcher": { "id": "byName", "options": "Status" }, "properties": [
+          { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+          { "id": "mappings", "value": [
+            { "type": "value", "options": {
+              "passed": { "color": "green", "index": 0 },
+              "failed": { "color": "orange", "index": 1 },
+              "timeout": { "color": "red", "index": 2 },
+              "errored": { "color": "purple", "index": 3 },
+              "running": { "color": "blue", "index": 4 } } } ] } ] },
+        { "matcher": { "id": "byName", "options": "Duration (s)" }, "properties": [{ "id": "unit", "value": "s" }] }
+      ] }
+    },
+    {
+      "type": "stat", "title": "Loaded model",
+      "gridPos": { "h": 4, "w": 10, "x": 14, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "ollama_model_context_length", "instant": true, "legendFormat": "{{model}} ctx" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "text" } } },
+      "options": { "colorMode": "value", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "type": "stat", "title": "Model VRAM",
+      "gridPos": { "h": 5, "w": 5, "x": 14, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "ollama_model_vram_bytes", "instant": true, "legendFormat": "{{model}}" }],
+      "fieldConfig": { "defaults": { "unit": "bytes", "color": { "mode": "fixed", "fixedColor": "blue" } } },
+      "options": { "colorMode": "value", "graphMode": "none" }
+    },
+    {
+      "type": "stat", "title": "GPU power (W)",
+      "gridPos": { "h": 5, "w": 5, "x": 19, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [{ "refId": "A", "expr": "gpu_power_watts", "instant": true }],
+      "fieldConfig": { "defaults": { "unit": "watt", "color": { "mode": "fixed", "fixedColor": "yellow" } } },
+      "options": { "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "type": "timeseries", "title": "GPU utilisation (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [
+        { "refId": "A", "expr": "gpu_utilization_percent", "legendFormat": "compute %" },
+        { "refId": "B", "expr": "gpu_mem_utilization_percent", "legendFormat": "mem-bw %" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "fillOpacity": 15, "showPoints": "never" } } }
+    },
+    {
+      "type": "timeseries", "title": "GPU temp (°C) & power (W)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "tb2prom" },
+      "targets": [
+        { "refId": "A", "expr": "gpu_temperature_celsius", "legendFormat": "temp °C" },
+        { "refId": "B", "expr": "gpu_power_watts", "legendFormat": "power W" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "showPoints": "never" } } }
+    }
+  ]
+}

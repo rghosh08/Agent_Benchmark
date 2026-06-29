@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//run/**)",
+      "Bash(systemctl is-active *)",
+      "Bash(sg docker *)",
+      "Bash(command -v tailscale)",
+      "Bash(tailscale ip *)",
+      "Bash(ip route *)"
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+# Observability stack for Terminal-Bench runs.
+# Host networking so the containers reach the host exporter (localhost:9101)
+# and each other on localhost. Grafana=3000, Prometheus=9090.
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: tb2-prometheus
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - tb2-prom-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: tb2-grafana
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: dark
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - tb2-grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  tb2-prom-data:
+  tb2-grafana-data:

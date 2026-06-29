@@ -1,0 +1,4 @@
+# Custom build of gemma4:31b with a smaller context window for faster
+# agentic rollouts on Terminal-Bench. 256K ctx -> 32K cuts prefill cost sharply.
+FROM gemma4:31b
+PARAMETER num_ctx 32768
