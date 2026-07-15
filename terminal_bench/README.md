@@ -22,6 +22,7 @@ backends** — pick one in `config.env`:
 | `config.env`            | All knobs: **backend/model**, dataset, task count, concurrency, timeouts |
 | `preflight.sh`          | Checks docker / harbor / API key (or ollama) before a run |
 | `run_benchmark.sh`      | Builds & runs the `harbor run …` command |
+| `smoke.sh`              | One-task pipeline check (`hello-world`) — prove a host scores before the full suite |
 | `summarize_results.py`  | Parses the job output into a pass-rate table |
 
 ## Choosing a backend
@@ -60,6 +61,12 @@ export OPENAI_API_KEY="ollama"                # any non-empty string
 
 ## Prerequisites (one-time)
 
+0. **Host architecture must be x86_64 (amd64).** TB2 task/verifier images are published
+   amd64-only. On an arm64 host (e.g. NVIDIA Grace) they run under QEMU emulation, where
+   the verifier's `pytest`/`numpy` **segfaults (signal 11)** *after* the agent phase has
+   already spent API tokens — so every task scores a false `0.0`. `preflight.sh` and
+   `run_benchmark.sh` hard-block a non-amd64 host; override only for debugging with
+   `ALLOW_EMULATED_ARCH=1` (results are not scoreable). Confirm with `uname -m` → `x86_64`.
 1. **uv + Harbor**:
    ```bash
    curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -79,6 +86,7 @@ export OPENAI_API_KEY="ollama"                # any non-empty string
 ```bash
 cd ~/Agent_Benchmark/terminal_bench
 ./preflight.sh            # verify the environment for the selected backend
+./smoke.sh                # optional: one `hello-world` task — a real pass = healthy pipeline
 ./run_benchmark.sh        # runs 5 tasks by default (see config.env)
 ```
 
